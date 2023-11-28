@@ -1,0 +1,240 @@
+
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+    <meta charset="UTF-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+
+    <title>UGG</title>
+
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+	<!--TWITTER-->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="UGG: Unified Generative Grasping" />
+    <meta name="twitter:description" content="Project page for UGG: Unified Generative Grasping." />
+    <meta name="twitter:image" content="https://jiaxin-lu.github.io/assets/img/ugg.png" />
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/codemirror.min.css">
+    <link rel="stylesheet" href="css/app.css">
+
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.8.0/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.5.3/clipboard.min.js"></script>
+
+    <script src="js/app.js"></script>
+</head>
+
+<body>
+    <div class="container" id="main">
+        <div class="row">
+            <h2 class="col-md-12 text-center">
+                UGG: Unified Generative Grasping
+                </br>
+                <small>
+                    arxiv preprint
+                </small>
+            </h2>
+        </div>
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <ul class="list-inline">
+                    <li>
+                        <a href="https://jiaxin-lu.github.io/">
+                            <strong> Jiaxin Lu </strong>
+                        </a> 
+						<sup>1</sup>
+                    </li>
+                    <li>
+                            <strong> Hao Kang </strong>
+                            <sup>2</sup>
+                    </li>
+                    <li>
+                        <a href="https://blog.haoxiang.org/haoxiang.html">
+                            <strong> Haoxiang Li </strong>
+                        </a>
+                        <sup>2</sup>
+                    </li>
+                    <li>
+                            <strong> Bo Liu </strong>
+                            <sup>2</sup>
+                    </li>
+                    <li>
+                            <strong> Yiding Yang </strong>
+                            <sup>2</sup>
+                    </li>
+                    <li>
+                        <a href="https://www.cs.utexas.edu/~huangqx/">
+                            <strong> Qixing Huang </strong>
+                        </a>
+						<sup>2</sup>
+<!--						<sup>1</sup>-->
+                    </li>
+                    <li>
+                        <a href="https://www.ganghua.org/">
+                            <strong> Gang Hua </strong>
+                        </a>
+                    </li><br>
+					<sup>1</sup>
+                    The University of Texas at Austin
+
+                 &nbsp;&nbsp;&nbsp;&nbsp;
+                    <sup>2</sup>
+                    Wormpex AI Research
+
+					</ul>
+            </div>
+        </div>
+
+
+        <div class="row">
+                <div class="col-md-4 col-md-offset-4 text-center">
+                    <ul class="nav nav-pills nav-justified">
+                        <li>
+                            <!-- <a href=""> -->
+                            <image src="img/paper_img.png" height="60px">
+                                <h4><strong>Paper</strong></h4>
+                            <!-- </a> -->
+                        </li>
+						<!-- <li>
+                            <a href="">
+                            <image src="img/github.png" height="60px">
+                                <h4><strong>Code</strong></h4>
+                            </a>
+                        </li> -->
+
+                    </ul>
+                </div>
+        </div>
+
+
+
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <h3>
+                    Abstract
+                </h3>
+                <p class="text-justify">
+                    Dexterous grasping aims to produce diverse grasping postures with a high grasping success rate. Regression-based methods that directly predict grasping parameters given the object may achieve a high success rate but often lack diversity.  
+                Generation-based methods that generate grasping postures conditioned on the object can often produce diverse grasping, but they are insufficient for high grasping success due to lack of discriminative information.
+                To mitigate, we introduce a unified diffusion-based dexterous grasp generation model, dubbed the name UGG, which operates within the object point cloud and hand parameter spaces. Our all-transformer architecture unifies the information from the object, the hand, and the contacts, introducing a novel representation of contact points for improved contact modeling. The flexibility and quality of our model enable the integration of a lightweight discriminator, benefiting from simulated discriminative data, which pushes for a high success rate while preserving high diversity. Beyond grasp generation, our model can also generate objects based on hand information, offering valuable insights into object design and studying how the generative model perceives objects. Our model achieves state-of-the-art dexterous grasping on the large-scale DexGraspNet dataset while facilitating human-centric object design, marking a significant advancement in dexterous grasping research.
+ </p>
+            </div>
+        </div>
+
+
+
+
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <h3>
+                    Method Overview
+                </h3>
+                <p style="text-align:center;">
+                    <image src="img/ugg.png" class="img-responsive">
+                </p>
+				<p class="text-justify">
+                    Overview of the proposed method UGG: Our approach involves encoding and embedding the object, contact anchors, and hand to facilitate the learning of a unified diffusion model. During inference, random seeds are sampled and subjected to a denoising process to generate samples. To discern potentially successful grasps, a physics discriminator is introduced. Subsequently, an optimization stage is undertaken for all selected grasps, utilizing the generated contact anchor and input point cloud.
+                </p>
+				</div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <h3>
+                    Grasp Generation
+                </h3>
+                <p style="text-align:center;">
+                    <image src="img/grasp_generation.png" class="img-responsive">
+                </p>
+				<br>
+                <p class="text-justify">
+                    Visualization of the generated diverse grasps of UGG on the DexGraspNet objects (mesh used only for visualization). Top: grasps of objects from seen categories; Bottom: grasps for objects of novel categories.
+                </p>
+				</div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <h3>
+                    Object Generation
+                </h3>
+                <p style="text-align:center;">
+                    <image src="img/object_generation.png" class="img-responsive">
+                </p>
+				<br>
+                <p class="text-justify">
+                    Visualization of object generation by UGG across three subsets, utilizing grey hand poses subjected to different transformations. The hand poses within each column are the same. The top row presents the results of the model trained on the  <i>entire dataset</i>, while the middle and bottom rows exhibit the results of the models trained on the <i>20 objects subset</i> and the <i>10 bottles subset</i>, respectively. </p>
+				</div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <h3>
+                    Joint Generation
+                </h3>
+                <p style="text-align:center;">
+                    <image src="img/joint_generation.png" class="img-responsive">
+                </p>
+				<br>
+                <p class="text-justify">
+                    Joint generation visualization of UGG, illustrating simultaneous generation of hand and objects. Results are presented for models trained on two subsets.
+                </p>
+				</div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <h3>
+                    3D Visualization
+                </h3>
+                <p class="text-justify">
+                    Please refer to <a href="visualization.html">this page</a> for more 3D visualization of our model. (The loading may be slow due to the heavy model and please use Google Chrome for better adapatability.)
+                </p>
+				</div>
+        </div>
+
+        <!-- <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <h3>
+                    Citation
+                </h3>
+                <div class="form-group col-md-10 col-md-offset-1">
+                    <textarea id="bibtex" class="form-control" readonly>
+@misc{lu2023jigsaw,
+      title={Jigsaw: Learning to Assemble Multiple Fractured Objects},
+      author={Jiaxin Lu and Yifan Sun and Qixing Huang},
+      year={2023},
+      eprint={2305.17975},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}</textarea>
+                </div>
+            </div>
+        </div> -->
+
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <!-- <h3>
+                    Acknowledgements
+                </h3> -->
+                <p class="text-justify" style="font-size: small;">
+                   <br>
+                   <br>
+                <i>The website template was borrowed from <a href="http://mgharbi.com/" style="font-size: small;">Michaël Gharbi</a>. </i>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
