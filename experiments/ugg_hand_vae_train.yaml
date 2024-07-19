@@ -1,0 +1,37 @@
+MODEL_NAME: hand_vae_bs1024_lr004_kl00001_22_32_64_mse_step
+MODULE: ugg.hand_vae
+
+DATASET: dexgraspnet
+
+PROJECT: ugg_hand_vae
+
+GPUS: [0]
+BATCH_SIZE: 1024
+NUM_WORKERS: 16
+
+TRAIN:
+  NUM_EPOCHS: 10
+  LR: 0.004
+  OPTIMIZER: Adam
+  LR_SCHEDULER: multistep
+  SCHEDULER:
+    milestones: [4, 8]
+    gamma: 0.1
+  VAL_EVERY: 1
+  VAL_SAMPLE_VIS: 5
+
+CALLBACK:
+  CHECKPOINT_MONITOR: val/loss
+  CHECKPOINT_MODE: min
+
+MODEL:
+  hand_vae:
+    kl_weight: 0.00001
+    encoder_dims: [22, 32, 64]
+    decoder_dims: [64, 32, 22]
+    loss: mse
+    
+DATA:
+  SPLITS_DIR: 'data/splits'
+  USE_PRECOMPUTE_PC: True
+  ROT_TYPE: mat

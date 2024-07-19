@@ -38,12 +38,7 @@ class ObjectModel:
         surface_points_tensor = []
         scale_tensor = []
         for i, (object_code, idx) in enumerate(self.object_code_list):
-            if self.dataset_name == 'ho3dobject':
-                mesh = tm.load(os.path.join(self.data_root_path, object_code, 'textured_simple.obj'), force='mesh', process=False)
-            elif self.dataset_name == 'grabobject':
-                mesh = tm.load(os.path.join(self.data_root_path, object_code + '.ply'), force='mesh', process=False)
-            else:
-                mesh = tm.load(os.path.join(self.data_root_path, "meshdata", object_code, "coacd", "decomposed.obj"), force="mesh", process=False)
+            mesh = tm.load(os.path.join(self.data_root_path, "meshdata", object_code, "coacd", "decomposed.obj"), force="mesh", process=False)
             self.object_mesh_list.append(mesh)
             object_verts = torch.Tensor(mesh.vertices).to(self.device)
             object_faces = torch.Tensor(mesh.faces).long().to(self.device)

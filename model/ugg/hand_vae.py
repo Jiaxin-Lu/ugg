@@ -146,14 +146,13 @@ class HandTrainer(BaseLightningModel):
         
         self.hand = None
 
-    def forward(self, data_dict):
-        hand_pose = data_dict['hand_pose']
+    def on_after_batch_transfer(self, batch, dataloader_idx: int):
+        hand_pose = batch['hand_pose']
         x = hand_pose[:, 3 + self.hand_rot_dim:]
-        # dataloader should determine this
-        # x = x - self.hand_pose_mean.to(self.device)
-        # x = x / (self.hand_pose_std.to(self.device) * 5.0)
-        # x = torch.clamp(x, -1.0, 1.0)
-        data_dict['x'] = x.detach()
+        batch['x'] = x
+        return batch
+    
+    def forward(self, data_dict):
         out_dict = self.hand_model(data_dict)
         return out_dict
 
@@ -189,16 +188,16 @@ class HandTrainer(BaseLightningModel):
             loss = mse_loss
             loss_dict['mse_loss'] = mse_loss
         else:
-            raise NotImplementedError(f"loss {self.model_cfg.loss} not implemented")
-        
+            raise NotImplementedError("loss function not implemented")
+            
         loss_spen = self.calc_spen(out_dict['x_recon'])
         loss += 0.01 * loss_spen
         loss_dict['spen_loss'] = loss_spen
         
         kl_div = kl_divergence(out_dict['mu'], out_dict['logvar'])
         loss = loss + self.kl_weight * kl_div
-        loss['kl_div'] = kl_div
-        loss['loss'] = loss
+        loss_dict['kl_div'] = kl_div
+        loss_dict['loss'] = loss
         return loss_dict
     
 
@@ -292,7 +291,7 @@ if __name__ == '__main__':
         trainer = pl.Trainer(**training_log_dict)
 
         print("finish setting -----")
-        trainer.fit(model, train_loader, val_loader)
+        trainer.fit(model, train_loader, val_loader, ckpt_path=ckp_path)
 
         print("Done training.")
 

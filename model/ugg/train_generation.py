@@ -110,11 +110,6 @@ def train_model(cfg):
 
     print("finish setting -----")
 
-    # model = model.load_from_checkpoint(ckp_path, cfg=cfg, strict=False)
-    # if cfg.FINETUNE:
-    #     model = model.load_unet_from_checkpoint(ckp_path)
-    #     trainer.fit(model, train_loader, val_loader)
-    # else:
     trainer.fit(model, train_loader, val_loader, ckpt_path=ckp_path)
 
     print("Done training.")

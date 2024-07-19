@@ -22,7 +22,7 @@ import trimesh
 
 class HandModel:
     @torch.cuda.amp.autocast(False)
-    def __init__(self, mjcf_path, mesh_path, contact_points_path, penetration_points_path, n_surface_points=0, device='cpu'):
+    def __init__(self, mjcf_path, mesh_path, contact_points_path, penetration_points_path, n_surface_points=1024, device='cpu'):
         """
         Create a Hand Model for a MJCF robot
         
@@ -85,8 +85,6 @@ class HandModel:
                     link_faces.append(faces + n_link_vertices)
                     n_link_vertices += len(vertices)
                 link_vertices = torch.cat(link_vertices, dim=0)
-                if 'robot0:lf' in link_name:
-                    link_vertices *= 1.5
                 link_faces = torch.cat(link_faces, dim=0)
                 contact_candidates = torch.tensor(contact_points[link_name], dtype=torch.float32, device=device).reshape(-1, 3) if contact_points is not None else None
                 penetration_keypoints = torch.tensor(penetration_points[link_name], dtype=torch.float32, device=device).reshape(-1, 3) if penetration_points is not None else None
@@ -162,7 +160,7 @@ class HandModel:
         self.global_rotation = None
         self.current_status = None
         self.contact_points = None
-
+    
     @torch.cuda.amp.autocast(False)
     def set_parameters(self, hand_pose, contact_point_indices=None):
         """

@@ -26,7 +26,7 @@ class UGGGenerationTrainer(BaseLightningModel):
         self.diffusion_cfg = cfg.MODEL.diffusion
         
         self.apply_random_rot = cfg.DATA.APPLY_RANDOM_ROT
-        print("model", self.apply_random_rot)
+        print("apply random rotation", self.apply_random_rot)
 
         with open(self.diffusion_cfg.pc_args, 'r') as f:
             pc_args = edict(yaml.full_load(f))
@@ -256,25 +256,7 @@ class UGGGenerationTrainer(BaseLightningModel):
     def forward(self, data_dict):
         hand_pose = data_dict['hand_pose']
         B = hand_pose.shape[0]
-
-        # time1 = time.time()
-
-        # if 'z_mu_global' in data_dict:
-        #     z_mu_global = data_dict['z_mu_global']
-        #     z_sigma_global = data_dict['z_sigma_global']
-        #     z_mu_local = data_dict['z_mu_local']
-        #     z_sigma_local = data_dict['z_sigma_local']
-        #     pc_global_latent = sample_normal(mu=z_mu_global, log_sigma=z_sigma_global)
-        #     pc_local_latent = sample_normal(mu=z_mu_local, log_sigma=z_sigma_local)
-        # else:
-        #     obj_pc = data_dict['object_pc']
-        #     pc_vae_output = self.compute_pc_vae(obj_pc)
-        #     pc_global_latent = pc_vae_output['eps_global']  # [B, D1]
-        #     pc_local_latent = pc_vae_output['eps_local']  # [B, ND2]
-        # data_dict.update({
-        #     'pc_global_latent': pc_global_latent,
-        #     'pc_local_latent': pc_local_latent
-        # })
+        
         pc_global_latent = data_dict['pc_global_latent']
         pc_local_latent = data_dict['pc_local_latent']
         
@@ -295,11 +277,6 @@ class UGGGenerationTrainer(BaseLightningModel):
             pc_global_xn = pc_global_latent
             pc_local_xn = pc_local_latent
 
-        # time2 = time.time()
-
-        # hand_param = hand_pose[:, self.hand_param_slice]
-        # hand_vae_output = self.compute_hand_vae(hand_param)
-        # hand_param_latent = hand_vae_output['eps']  # [B, Dh]
         hand_param_latent = data_dict['hand_param_latent']
         _, Dh = hand_param_latent.shape
 
@@ -324,8 +301,6 @@ class UGGGenerationTrainer(BaseLightningModel):
             hand_R_xn = hand_R
             hand_param_xn = hand_param_latent
 
-        # time3 = time.time()
-
         unet_dict = {
             'pc_global': pc_global_xn,
             'pc_local': pc_local_xn,
@@ -347,8 +322,6 @@ class UGGGenerationTrainer(BaseLightningModel):
 
         unet_output = self.unet(unet_dict)
 
-        # time4 = time.time()
-
         gt_output = {
             'hand_t_eps': hand_t_eps,
             'hand_R_eps': hand_R_eps,
@@ -368,8 +341,6 @@ class UGGGenerationTrainer(BaseLightningModel):
             })
 
         gt_output.update(unet_output)
-
-        # print(f'time_composed: {time2-time1}; {time3-time2}; {time4-time3}')
         
         return gt_output
     
@@ -479,7 +450,7 @@ class UGGGenerationTrainer(BaseLightningModel):
         for t in reversed(range(1, self.n_timestep+1)):
             t_ = torch.ones(B, dtype=torch.long, device=self.device) * t
             if self.gen_contact:
-                t_contact = torch.ones(B, dtype=torch.long, device=self.device) * t
+                t_contact = t_
             else:
                 t_contact = None
             x_t_new = self.p_sample(x_t_dict, t_hand=t_, t_pc=t_, t_contact=t_contact)
@@ -490,10 +461,6 @@ class UGGGenerationTrainer(BaseLightningModel):
         hand_param_latent = final_dict['hand_param']
 
         hand_param_final = self.decode_hand_vae(hand_param_latent)
-        # if self.hand_latent_model is not None:
-        #     hand_param_final = self.hand_latent_model.decode(dict(z=hand_param_latent))['x_recon']
-        # else:
-        #     hand_param_final = hand_param_latent
         
         pc_global_latent = final_dict['pc_global']
         pc_local_latent = final_dict['pc_local']
@@ -545,24 +512,6 @@ class UGGGenerationTrainer(BaseLightningModel):
         pc_global_latent_gen = data_dict['pc_global_latent']
         pc_local_latent_gen = data_dict['pc_local_latent']
 
-        # if 'z_mu_global' in data_dict:
-        #     z_mu_global = data_dict['z_mu_global']
-        #     z_sigma_global = data_dict['z_sigma_global']
-        #     z_mu_local = data_dict['z_mu_local']
-        #     z_sigma_local = data_dict['z_sigma_local']
-        #     # print(z_mu_global.shape, z_sigma_global.shape, z_mu_local.shape, z_sigma_local.shape)
-        #     pc_global_latent_gen = sample_normal(mu=z_mu_global, log_sigma=z_sigma_global)
-        #     pc_local_latent_gen = sample_normal(mu=z_mu_local, log_sigma=z_sigma_local)
-        # else:
-        #     obj_pc = data_dict['object_pc']
-        #     pc_vae_output = self.compute_pc_vae(obj_pc)
-        #     pc_global_latent_gen = pc_vae_output['eps_global']  # [B, D1]
-        #     pc_local_latent_gen = pc_vae_output['eps_local']  # [B, ND2]
-        # obj_pc = data_dict['object_pc']
-        # pc_vae_output = self.compute_pc_vae(obj_pc)
-        # pc_global_latent_gen = pc_vae_output['eps_global']  # [B, D1]
-        # pc_local_latent_gen = pc_vae_output['eps_local']  # [B, ND2]
-        
         B = hand_param_latent_gen.shape[0]
 
         x_t_dict = {
@@ -635,18 +584,11 @@ class UGGGenerationTrainer(BaseLightningModel):
         pc_local_latent_gen = data_dict['pc_local_latent_gen']
         
         hand_pose = data_dict['hand_pose']
-        # hand_param = hand_pose[:, self.hand_param_slice]
-        # hand_vae_output = self.compute_hand_vae(hand_param)
-        # hand_param_latent_gen = hand_vae_output['eps']  # [B, Dh]
         hand_param_latent_gen = data_dict['hand_param_latent']
         _, Dh = hand_param_latent_gen.shape
 
         hand_R_gen = hand_pose[:, self.hand_rot_slice]  # [B, 4]
         hand_t_gen = hand_pose[:, self.hand_trans_slice]  # [B, 3]
-        
-        # obj_pc = data_dict['object_pc']
-        # pc_vae_output = self.compute_pc_vae(obj_pc)
-        # pc_global_latent_gen = pc_vae_output['eps_global']  # [B, D1] TODO
 
         B = hand_param_latent_gen.shape[0]
 
@@ -668,7 +610,6 @@ class UGGGenerationTrainer(BaseLightningModel):
             x_t_dict['hand_param'] = hand_param_latent_gen
             x_t_dict['hand_R'] = hand_R_gen
             x_t_dict['hand_t'] = hand_t_gen
-            # x_t_dict['pc_global'] = pc_global_latent_gen  # TODO
             t_pc = torch.ones(B, dtype=torch.long, device=self.device) * t
             t_hand = torch.zeros(B, dtype=torch.long, device=self.device)
             if self.gen_contact:

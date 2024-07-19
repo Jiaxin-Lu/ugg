@@ -2,7 +2,7 @@ import platform
 import os
 import torch
 import numpy as np
-
+import open3d as o3d
 
 def try_to_device(d, device):
     try:
@@ -14,6 +14,13 @@ def try_to_device(d, device):
 def try_to_cuda(d):
     try:
         d = d.cuda()
+    except AttributeError:
+        pass
+    return d
+
+def try_to_detach(d):
+    try:
+        d = d.detach()
     except AttributeError:
         pass
     return d
@@ -38,6 +45,9 @@ def dict_to_device(data_dict, device):
         if isinstance(v, list):
             v_device = [try_to_device(t, device) for t in v]
             ret_dict[k] = v_device
+        elif isinstance(v, dict):
+            v_device = dict_to_device(v, device)
+            ret_dict[k] = v_device
         else:
             v_device = try_to_device(v, device)
             ret_dict[k] = v_device
@@ -49,8 +59,25 @@ def dict_to_cuda(data_dict):
         if isinstance(v, list):
             v_device = [try_to_cuda(t) for t in v]
             ret_dict[k] = v_device
+        if isinstance(v, dict):
+            v_device = dict_to_cuda(v)
+            ret_dict[k] = v_device
         else:
             v_device = try_to_cuda(v)
+            ret_dict[k] = v_device
+    return ret_dict
+
+def dict_to_detach(data_dict):
+    ret_dict = dict()
+    for k, v in data_dict.items():
+        if isinstance(v, list):
+            v_device = [try_to_detach(t) for t in v]
+            ret_dict[k] = v_device
+        elif isinstance(v, dict):
+            v_device = dict_to_detach(v)
+            ret_dict[k] = v_device
+        else:
+            v_device = try_to_detach(v)
             ret_dict[k] = v_device
     return ret_dict
 
@@ -59,6 +86,9 @@ def dict_to_cpu(data_dict):
     for k, v in data_dict.items():
         if isinstance(v, list):
             v_device = [try_to_cpu(t) for t in v]
+            ret_dict[k] = v_device
+        elif isinstance(v, dict):
+            v_device = dict_to_cpu(v)
             ret_dict[k] = v_device
         else:
             v_device = try_to_cpu(v)
@@ -70,6 +100,9 @@ def dict_to_numpy(data_dict):
     for k, v in data_dict.items():
         if isinstance(v, list):
             v_device = [try_to_numpy(t) for t in v]
+            ret_dict[k] = v_device
+        elif isinstance(v, dict):
+            v_device = dict_to_numpy(v)
             ret_dict[k] = v_device
         else:
             v_device = try_to_numpy(v)
@@ -96,17 +129,6 @@ def extract_batch0(data_dict):
         except:
             ret_dict[k] = v
     return ret_dict
-
-def gen_random_seed(B, pc_global_dim, pc_local_dim, hand_param_dim, hand_rot_dim, hand_t_dim, contact_num, hand_contact_num=1024, device='cpu'):
-        seed_dict = dict()
-        seed_dict['pc_global_latent_gen'] = torch.randn(B, pc_global_dim, dtype=torch.float32).to(device)
-        seed_dict['pc_local_latent_gen'] = torch.randn(B, pc_local_dim, dtype=torch.float32).to(device)
-        seed_dict['hand_param_latent_gen'] = torch.randn(B, hand_param_dim, dtype=torch.float32).to(device)
-        seed_dict['hand_R_gen'] = torch.randn(B, hand_rot_dim, dtype=torch.float32).to(device)
-        seed_dict['hand_t_gen'] = torch.randn(B, hand_t_dim, dtype=torch.float32).to(device)
-        seed_dict['contact_map_gen'] = torch.randn(B, contact_num * 3, dtype=torch.float32).to(device)
-        seed_dict['hand_contact_map_gen'] = torch.randn(B, hand_contact_num, dtype=torch.float32).to(device)
-        return seed_dict
     
 def square_distance(src, dst):
     dist = -2 * torch.matmul(src, dst.permute(0, 2, 1))
@@ -150,3 +172,14 @@ def load_model(model, weight_file='', model_save_path=''):
             ckp_path = os.path.join(model_save_path, last_ckp)
     return ckp_path
         
+        
+def save_pcd(dir, pc, color=None):
+    if isinstance(pc, torch.Tensor):
+        pc = pc.detach().cpu().numpy()
+    xyz = o3d.geometry.PointCloud()
+    xyz.points = o3d.utility.Vector3dVector(pc)
+    if color is not None:
+        if isinstance(color, torch.Tensor):
+            color = color.detach().cpu().numpy()
+        xyz.colors = o3d.utility.Vector3dVector(color)
+    o3d.io.write_point_cloud(dir, xyz)

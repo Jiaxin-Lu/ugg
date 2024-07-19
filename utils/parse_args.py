@@ -2,13 +2,8 @@ import argparse
 import os
 import platform
 
-from .config import cfg, cfg_from_file, cfg_from_list
+from .config import cfg, cfg_from_file, cfg_from_list, generate_output_path
 from .utils import cp_some
-
-def generate_output_path(model_name, project):
-    output_path = os.path.join('results', project, model_name)
-    model_save_path = os.path.join('results', project, model_name, 'model_save')
-    return output_path, model_save_path
 
 
 def parse_args(description=''):
@@ -41,8 +36,6 @@ def parse_args(description=''):
             os.makedirs(cfg.OUTPUT_PATH, exist_ok=True)
         if not os.path.exists(cfg.MODEL_SAVE_PATH):
             os.makedirs(cfg.MODEL_SAVE_PATH, exist_ok=True)
-        if not os.path.exists(os.path.join(cfg.OUTPUT_PATH, 'tensorboard')):
-            os.makedirs(os.path.join(cfg.OUTPUT_PATH, 'tensorboard'), exist_ok=True)
 
     if args.cfg_file is not None:
         # Save the config file into the model save path

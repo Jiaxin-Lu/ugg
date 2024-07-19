@@ -3,6 +3,19 @@ import numpy as np
 import torch
 from .rot6d import normalize_rot6d_numpy, normalize_rot6d_torch
 
+
+hand_translation_names = ['WRJTx', 'WRJTy', 'WRJTz']
+hand_rot_names = ['WRJRx', 'WRJRy', 'WRJRz']
+hand_joint_names = [
+    'robot0:WRJ1', 'robot0:WRJ0',
+    'robot0:FFJ3', 'robot0:FFJ2', 'robot0:FFJ1', 'robot0:FFJ0',
+    'robot0:MFJ3', 'robot0:MFJ2', 'robot0:MFJ1', 'robot0:MFJ0',
+    'robot0:RFJ3', 'robot0:RFJ2', 'robot0:RFJ1', 'robot0:RFJ0',
+    'robot0:LFJ4', 'robot0:LFJ3', 'robot0:LFJ2', 'robot0:LFJ1', 'robot0:LFJ0',
+    'robot0:THJ4', 'robot0:THJ3', 'robot0:THJ2', 'robot0:THJ1', 'robot0:THJ0'
+]
+
+
 HAND_POSE_MEAN = [ 0.00866105,  0.23923993,  0.5744655,   0.18574114,  0.01515685,  0.2184931,
                 0.6651551,  0.19167383,  0.02034698,  0.28905097,  0.65397215,  0.18671101,
                 0.2992066,  -0.0690463,   0.24670933,  0.60648596,  0.19446549,  0.30786476,

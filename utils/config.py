@@ -1,5 +1,5 @@
 import importlib
-
+import os
 from easydict import EasyDict as edict
 
 import dataset
@@ -12,7 +12,7 @@ __C.MODULE = ''  # sample: grasp_tta.cvae
 
 __C.BATCH_SIZE = 32
 __C.NUM_WORKERS = 8
-__C.GEN_GRASP_NUM = 250
+__C.GEN_GRASP_NUM = 50
 __C.GEN_OBJECT_NUM = 250
 
 __C.FINETUNE = False
@@ -219,3 +219,20 @@ def cfg_from_list(cfg_list):
             'type {} does not match original type {}'.format(
             type(value), type(d[sub_key]))
         d[sub_key] = value
+
+def generate_output_path(model_name, project):
+    output_path = os.path.join('results', project, model_name)
+    model_save_path = os.path.join('results', project, model_name, 'model_save')
+    return output_path, model_save_path
+
+def cfg_from_file_path(cfg_path):
+    cfg_from_file(cfg_path)
+    
+    if len(cfg.MODEL_NAME) != 0:
+        output_path, model_save_path = generate_output_path(cfg.MODEL_NAME, cfg.PROJECT)
+        cfg_from_list(['OUTPUT_PATH', output_path, 'MODEL_SAVE_PATH', model_save_path])
+        if not os.path.exists(cfg.OUTPUT_PATH):
+            os.makedirs(cfg.OUTPUT_PATH, exist_ok=True)
+        if not os.path.exists(cfg.MODEL_SAVE_PATH):
+            os.makedirs(cfg.MODEL_SAVE_PATH, exist_ok=True)
+            

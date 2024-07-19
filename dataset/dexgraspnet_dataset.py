@@ -10,26 +10,12 @@ from loguru import logger
 from scipy.spatial.transform import Rotation
 from torch.utils.data import DataLoader, Dataset
 
-from utils.hand_helper import decompose_hand_param
-
-translation_names = ['WRJTx', 'WRJTy', 'WRJTz']
-rot_names = ['WRJRx', 'WRJRy', 'WRJRz']
-joint_names = [
-    'robot0:WRJ1', 'robot0:WRJ0',
-    'robot0:FFJ3', 'robot0:FFJ2', 'robot0:FFJ1', 'robot0:FFJ0',
-    'robot0:MFJ3', 'robot0:MFJ2', 'robot0:MFJ1', 'robot0:MFJ0',
-    'robot0:RFJ3', 'robot0:RFJ2', 'robot0:RFJ1', 'robot0:RFJ0',
-    'robot0:LFJ4', 'robot0:LFJ3', 'robot0:LFJ2', 'robot0:LFJ1', 'robot0:LFJ0',
-    'robot0:THJ4', 'robot0:THJ3', 'robot0:THJ2', 'robot0:THJ1', 'robot0:THJ0'
-]
+from utils.hand_helper import decompose_hand_param, hand_translation_names, hand_rot_names, hand_joint_names
 
 class DexGraspDataset(Dataset):
     def __init__(self,
                  cfg,
                  mode,
-
-                hand_ratio=-1,
-                object_ratio=-1,
                 *args, **kwargs
                 ):
         super().__init__()
@@ -67,9 +53,6 @@ class DexGraspDataset(Dataset):
             self.mesh_dir_list = [self.mesh_dir_list[i] for i in rand_idx]
             self.dataset_length = len(self.grasp_code_idx_list)
             logger.info(f'update dataset length to {self.dataset_length}')
-        
-        self.pre_saved_grasp_data = []
-        self.pre_saved_pc = {}
 
     def read_data(self, data_dir, mesh_dir, splits_dir, mode, object_ratio=-1, hand_ratio=-1):
         pk_file_name = f'saved_dexgraspnet_data_{mode}'
@@ -120,16 +103,12 @@ class DexGraspDataset(Dataset):
         return self.dataset_length
 
     def __getitem__(self, idx):
-        if len(self.pre_saved_grasp_data):
-            grasp_code, grasp_idx = self.grasp_code_idx_list[idx]
-            grasp_data = self.pre_saved_grasp_data[idx]
-            qpos = grasp_data['qpos']
-        else:
-            grasp_code, grasp_idx = self.grasp_code_idx_list[idx]
-            grasp_data = np.load(os.path.join(self.data_dir, grasp_code + '.npy'), allow_pickle=True)
-            grasp_data = grasp_data[grasp_idx]
-            qpos = grasp_data['qpos']
-        translation = np.array([qpos[name] for name in translation_names], dtype=np.float32)
+        grasp_code, grasp_idx = self.grasp_code_idx_list[idx]
+        grasp_data = np.load(os.path.join(self.data_dir, grasp_code + '.npy'), allow_pickle=True)
+        grasp_data = grasp_data[grasp_idx]
+        qpos = grasp_data['qpos']
+        
+        translation = np.array([qpos[name] for name in hand_translation_names], dtype=np.float32)
         r_rand = None
         if self.apply_random_rot:
             r_rand = Rotation.random().as_matrix()
@@ -137,44 +116,41 @@ class DexGraspDataset(Dataset):
             translation = translation @ r_rand
         # print(self.rot_type)
         if self.rot_type == 'ax':
-            rotation = transforms3d.euler.euler2mat(*[qpos[name] for name in rot_names])
+            rotation = transforms3d.euler.euler2mat(*[qpos[name] for name in hand_rot_names])
             if r_rand is not None:
                 rotation = r_rand.T @ rotation
             vector, theta = transforms3d.axangles.mat2axangle(rotation)
             rotation = (np.array(vector) / np.linalg.norm(vector) * theta)
         elif self.rot_type == 'quat':
-            rotation = transforms3d.euler.euler2quat(*[qpos[name] for name in rot_names])
+            rotation = transforms3d.euler.euler2quat(*[qpos[name] for name in hand_rot_names])
             if r_rand is not None:
                 rotation = r_rand.T @ rotation
             rotation = np.array(rotation)
             rotation = rotation / np.linalg.norm(rotation)
             # print('rotation_norm', np.linalg.norm(rotation))
         elif self.rot_type == 'euler':
-            rotation = np.array([qpos[name] for name in rot_names])            
+            rotation = np.array([qpos[name] for name in hand_rot_names])            
             if r_rand is not None:
                 assert False
         elif self.rot_type == 'mat':
-            rotation = transforms3d.euler.euler2mat(*[qpos[name] for name in rot_names])
+            rotation = transforms3d.euler.euler2mat(*[qpos[name] for name in hand_rot_names])
             if r_rand is not None:
                 rotation = r_rand.T @ rotation
             rotation = rotation[:, :2].T.ravel().tolist()
             rotation = np.array(rotation)
 
-        joint_angles = np.array([qpos[name] for name in joint_names[2:]], np.float32)
+        joint_angles = np.array([qpos[name] for name in hand_joint_names[2:]], np.float32)
         hand_pose = torch.tensor(translation.tolist() + rotation.tolist() + joint_angles.tolist(), dtype=torch.float)
 
         rand_id = random.randint(0, 9)
-        if self.use_precompute_pc and self.pre_saved_pc:
-            latent_dict = self.pre_saved_pc[grasp_code]
-            latent_list = latent_dict[grasp_data['scale']]
-            latent_list = [[tt[rand_id] for tt in t] for t in latent_list]
-        elif self.use_precompute_pc and self.pc_num_points == 2048:
+        if self.use_precompute_pc and self.pc_num_points == 2048:
             if self.use_point_cloud:
                 pc_path = os.path.join(self.mesh_dir, grasp_code, f"coacd/pc_2048_{rand_id:03d}.npy")
                 samples = np.load(pc_path)
-            # loaded point cloud is of original shape
-            # assert samples.shape[0] == self.pc_num_points
             if self.normalize_pc:
+                # The point cloud is normalized in the dataset!
+                # To accelerate training, we use the precomputed latent code, 
+                # which is based on normalized pc.
                 with open(os.path.join(self.mesh_dir, grasp_code, f"coacd/pc_norm_latent_LION_{rand_id:03d}.pk"), 'rb') as f:
                     latent_dict = pickle.load(f)
                 latent_list = latent_dict[grasp_data['scale']]

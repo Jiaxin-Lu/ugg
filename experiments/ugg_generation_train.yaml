@@ -1,4 +1,4 @@
-MODEL_NAME: ugg_contact_bs2048_lr0002_l2_cosine
+MODEL_NAME: ugg_bs8x256_lr0002_l2_cosine
 MODULE: ugg.generation
 
 DATASET: dexgraspnet
@@ -7,7 +7,7 @@ GPUS: [0, 1, 2, 3, 4, 5, 6, 7]
 BATCH_SIZE: 256
 NUM_WORKERS: 16
 
-PROJECT: ugg_contact
+PROJECT: ugg_generation
 
 TRAIN:
   NUM_EPOCHS: 5000
@@ -32,7 +32,7 @@ MODEL:
 
   diffusion:
     pc_checkpoint: ./checkpoints/lion/aeb159h_hvae_lion_B32/checkpoints/epoch_5999_iters_1667999.pt
-    hand_checkpoint: ./checkpoints/hand_vae/hand_vae_norm_l2_4_8_kl0.00001_22_32_64_lr4e-3_model/model_save/model_epoch=009.ckpt
+    hand_checkpoint: ./checkpoints/hand_vae/hand_vae_bs1024_lr004_kl00001_22_32_64_mse_step/model_epoch=009.ckpt
     pc_args: ./checkpoints/lion/aeb159h_hvae_lion_B32/cfg.yml
     gen_hand: True
     gen_pc: True
@@ -51,10 +51,9 @@ MODEL:
     beta_end: 0.02
     n_timestep: 200
 
-WEIGHT_FILE: /ssda/jiaxinlu/grasp/results/diffusion_lion_large/diffusion_lion_contact_joint_l2_lr00002_random_rot/model_save/model_epoch=3499.ckpt
 
 DATA:
-  SPLITS_DIR: 'data/splits_new'
+  SPLITS_DIR: 'data/splits'
   ROT_TYPE: mat
   PC_NUM_POINTS: 2048
   TEST_LENGTH: 38400

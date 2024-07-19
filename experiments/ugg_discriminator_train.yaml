@@ -1,0 +1,37 @@
+MODEL_NAME: discriminator_on_e1499_bs1024_lr0002_ep80_decoded_oripc_onrefine
+MODULE: ugg.discriminator
+
+DATASET: discriminator
+
+GPUS: [0]
+BATCH_SIZE: 1024
+NUM_WORKERS: 4
+
+PROJECT: ugg_discriminator
+
+TRAIN:
+  NUM_EPOCHS: 80
+  LR: 0.0002
+  OPTIMIZER: Adam
+  LR_SCHEDULER: cosine
+  SCHEDULER:
+    lr_decay_factor: 10
+  VAL_EVERY: 2
+  VAL_SAMPLE_VIS: 5
+
+CALLBACK:
+  CHECKPOINT_MONITOR: val/loss
+  CHECKPOINT_MODE: min
+
+MODEL:
+  diffusion:
+    disc:
+      cls_mode: cat
+      type: ori_pc
+      hand_param_dim: 22
+      pc_local_pts: 2048
+      pc_local_pts_dim: 3
+      
+DATA:
+  FILE_DIR: ./data/discriminator_data/e1499
+  DECODED_HAND: True
