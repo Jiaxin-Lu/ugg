@@ -21,6 +21,8 @@ def parse_args(description=''):
                         help='use simulation test hand')
     parser.add_argument('--start', default=0, type=int,
                         help='start iterations')
+    parser.add_argument('--step', default=25, type=int,
+                        help='step iterations')
     parser.add_argument('--folder', default=None, type=str)
     args = parser.parse_args()
 

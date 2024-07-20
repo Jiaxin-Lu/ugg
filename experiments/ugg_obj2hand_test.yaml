@@ -59,6 +59,3 @@ MODEL:
     opt_lr: 0.001
     opt_iter: 100
 
-WEIGHT_FILE: /ssda/jiaxinlu/grasp/results/diffusion_lion_large/diffusion_lion_contact_joint_l2_lr00002_partial_fix_global/model_save/model_epoch=3239.ckpt
-
-  

@@ -1,0 +1,13 @@
+MODEL_NAME: ugg_bs8x256_lr0002_l2_cosine
+MODULE: ugg.generation
+DATASET: dexgraspnet
+
+PROJECT: ugg_generation
+
+MODEL:
+  test:
+    nms: False
+    thres_pen: 0.005
+    thres_contact: 0.01
+
+# TEST_FILE: path/to/test_file  # if you want to specify a different test file

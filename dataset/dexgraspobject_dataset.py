@@ -18,6 +18,7 @@ class DexGraspObjectDataset(Dataset):
                  ):
         self.mode = mode
         self.data_dir = cfg.DATA.DATA_DIR
+        self.mesh_dir = cfg.DATA.MESH_DIR
         self.splits_dir = cfg.DATA.SPLITS_DIR
         self.pc_num_points = cfg.DATA.PC_NUM_POINTS
         self.scale_choice = torch.tensor([0.06, 0.08, 0.1, 0.12, 0.15], dtype=torch.float32)
@@ -26,7 +27,7 @@ class DexGraspObjectDataset(Dataset):
 
         self.normalize_pc=cfg.DATA.NORMALIZE_PC
 
-        self.mesh_code_list, self.mesh_dir_list = self.read_data(self.data_dir, self.splits_dir, mode)
+        self.mesh_code_list, self.mesh_dir_list = self.read_data(self.mesh_dir, self.splits_dir, mode)
         
         self.dataset_length = len(self.mesh_code_list)
 

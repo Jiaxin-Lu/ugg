@@ -1,1 +1,2 @@
-# ugg
+# UGG: Unified Generative Grasping
+

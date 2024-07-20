@@ -8,8 +8,9 @@ from torchsdf import compute_sdf, index_vertices_by_faces
 SCALE_CHOICE = [0.06, 0.08, 0.1, 0.12, 0.15]
 
 class ObjectModel:
-    def __init__(self, data_root_path, pc_num_points, device='cpu', dataset_name='dex'):
-        self.data_root_path = data_root_path
+    def __init__(self, data_dir, mesh_dir, pc_num_points, device='cpu', dataset_name='dex'):
+        self.data_dir = data_dir
+        self.mesh_dir = mesh_dir
         self.device = device
         self.pc_num_points = pc_num_points
 
@@ -38,7 +39,7 @@ class ObjectModel:
         surface_points_tensor = []
         scale_tensor = []
         for i, (object_code, idx) in enumerate(self.object_code_list):
-            mesh = tm.load(os.path.join(self.data_root_path, "meshdata", object_code, "coacd", "decomposed.obj"), force="mesh", process=False)
+            mesh = tm.load(os.path.join(self.mesh_dir, object_code, "coacd", "decomposed.obj"), force="mesh", process=False)
             self.object_mesh_list.append(mesh)
             object_verts = torch.Tensor(mesh.vertices).to(self.device)
             object_faces = torch.Tensor(mesh.faces).long().to(self.device)
@@ -48,7 +49,7 @@ class ObjectModel:
                 surface_points = torch.tensor(samples, dtype=torch.float, device=self.device)
                 surface_points_tensor.append(surface_points)
             if object_sc is None:
-                grasp_data = np.load(os.path.join(self.data_root_path, "dexgraspnet", object_code+".npy"), allow_pickle=True)[idx]
+                grasp_data = np.load(os.path.join(self.data_dir, object_code+".npy"), allow_pickle=True)[idx]
                 scale_tensor.append(grasp_data['scale'])
         
         if object_pc is None and self.pc_num_points != 0:
@@ -62,19 +63,30 @@ class ObjectModel:
             self.object_sc = object_sc.to(self.device)
 
         self.num_obj = len(self.object_mesh_list)
-        if len(self.object_mesh_list) > 1:
-            assert len(self.object_mesh_list) == self.object_pc.shape[0]
+        if self.num_obj > 1:
+            assert self.num_obj == self.object_pc.shape[0]
             assert self.object_pc.shape[0] == self.object_sc.shape[0]
-        elif len(self.object_mesh_list) == 1 and self.object_pc.shape[0] > 1:
+        elif self.num_obj == 1 and self.object_pc.shape[0] > 1:
             self.batch_size_each = self.object_pc.shape[0]
             assert self.object_pc.shape[0] == self.object_sc.shape[0]
-        elif len(self.object_mesh_list) == 1 and self.object_sc.shape[0] > 1:
+        elif self.num_obj == 1 and self.object_sc.shape[0] > 1:
             self.batch_size_each = self.object_sc.shape[0]
             self.object_pc = self.object_pc.repeat(self.object_sc.shape[0], 1, 1) * self.object_sc.reshape(-1, 1, 1)
         
         if object_rot is not None:
             assert self.object_pc.shape[0] == object_rot.shape[0]
             self.object_pc = torch.bmm(self.object_pc, object_rot)
+    
+    def extend(self):
+        self.object_pc = self.object_pc.repeat(2, 1, 1)
+        self.object_sc = self.object_sc.repeat(2, 1)
+        if self.num_obj > 1:
+            self.object_code_list.extend(self.object_code_list)
+            self.object_mesh_list.extend(self.object_mesh_list)
+            self.object_face_verts_list.extend(self.object_face_verts_list)
+            self.num_obj = len(self.object_mesh_list)
+        else:
+            self.batch_size_each = self.object_sc.shape[0]
             
     def cal_distance(self, x, with_closest_points=False):
         """

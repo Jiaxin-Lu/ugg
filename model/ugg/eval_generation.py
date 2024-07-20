@@ -34,6 +34,7 @@ torch.set_float32_matmul_precision('high')
 
 
 def joint_test(cfg):
+    print("Test joint")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("using device", device)
 
@@ -91,7 +92,7 @@ def joint_test(cfg):
         'pc_out': ret_dict['joint']['pc_final'],
         'pc_opt': pc_opt,
         'hand_param_out': ret_dict['joint']['hand_param_composed'],
-        'hand_opt': hand_opt,
+        'hand_param_opt': hand_opt,
         'contact_map': ret_dict['joint']['contact_map_actual'] if model.gen_contact else None,
         'seed_dict': seed_dict,
     }
@@ -104,6 +105,7 @@ def joint_test(cfg):
 
 
 def hand2obj_test(cfg):
+    print("Test hand2obj")
     train_loader, val_loader = build_dataloader(cfg)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("using device", device)
@@ -167,7 +169,7 @@ def hand2obj_test(cfg):
                 'pc_opt': pc_opt,
                 'hand_param_in': hand_param_in,
                 'hand_param_out': ret_dict['hand2obj']['hand_param_composed'],
-                'hand_opt': hand_opt,
+                'hand_param_opt': hand_opt,
                 'contact_map': ret_dict['hand2obj']['contact_map_actual'] if model.gen_contact else None,
                 'seed_dict': seed_dict,
             }
@@ -175,7 +177,7 @@ def hand2obj_test(cfg):
             gen_dict[mesh_code] = dict_to_numpy(current_gen_dict)
         else:
             print("duplicated test")
-        if (batch_idx + 1) % 20 == 0:
+        if (batch_idx + 1) % 25 == 0:
             with open(save_file, 'wb') as f:
                 pickle.dump(gen_dict, f, protocol=pickle.HIGHEST_PROTOCOL)
 
@@ -186,6 +188,7 @@ def hand2obj_test(cfg):
 
 
 def obj2hand_test(cfg, task='obj2hand'):
+    print(f"Test {task}")
     train_loader, val_loader = build_dataloader(cfg)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("using device", device)
@@ -217,8 +220,8 @@ def obj2hand_test(cfg, task='obj2hand'):
         device=device
     )
     
-    object_data_root_path = 'data/'
-    object_model = ObjectModel(data_root_path=object_data_root_path, 
+    object_model = ObjectModel(data_dir=cfg.DATA.DATA_DIR,
+                               mesh_dir=cfg.DATA.MESH_DIR,
                                pc_num_points=2048, 
                                device=device,
                                dataset_name=cfg.DATASET.lower())
@@ -274,11 +277,12 @@ def obj2hand_test(cfg, task='obj2hand'):
         hand_param = ret_dict[task]['hand_param_composed'].detach().clone()
         current_gen_dict = {
             'hand_param_out': hand_param,
-            'hand_opt': hand_opt,
+            'hand_param_opt': hand_opt,
             'object_pc': data_dict['object_pc'],
             'object_sc': data_dict['object_sc'],
             'contact_map': ret_dict[task]['contact_map_actual'] if model.gen_contact else None,
             'seed_dict': seed_dict,
+            # 'hand_param_opt_list': hand_pose_list,  # if you want to save the intermediate results, uncomment this line
         }
         
         # For discriminator, should use normalized pc (6.6x) and decomposed hand param 

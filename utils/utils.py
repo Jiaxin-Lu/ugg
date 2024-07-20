@@ -2,7 +2,7 @@ import platform
 import os
 import torch
 import numpy as np
-import open3d as o3d
+
 
 def try_to_device(d, device):
     try:
@@ -35,6 +35,13 @@ def try_to_cpu(d):
 def try_to_numpy(d):
     try:
         d = d.detach().cpu().numpy()
+    except AttributeError:
+        pass
+    return d
+
+def try_to_torch(d):
+    try:
+        d = torch.from_numpy(d)
     except AttributeError:
         pass
     return d
@@ -173,13 +180,3 @@ def load_model(model, weight_file='', model_save_path=''):
     return ckp_path
         
         
-def save_pcd(dir, pc, color=None):
-    if isinstance(pc, torch.Tensor):
-        pc = pc.detach().cpu().numpy()
-    xyz = o3d.geometry.PointCloud()
-    xyz.points = o3d.utility.Vector3dVector(pc)
-    if color is not None:
-        if isinstance(color, torch.Tensor):
-            color = color.detach().cpu().numpy()
-        xyz.colors = o3d.utility.Vector3dVector(color)
-    o3d.io.write_point_cloud(dir, xyz)

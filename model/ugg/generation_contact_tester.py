@@ -19,7 +19,6 @@ from easydict import EasyDict as edict
 from loguru import logger
 
 from LION import vae_adain
-from model.ugg.diffusion_utils.ddim_schedule import DDIMSchedule
 from model.ugg.UViT.pn2_layer import square_distance
 from utils.distribution import sample_normal
 from utils.hand_helper import ROT_DIM_DICT, compose_hand_param
@@ -54,10 +53,6 @@ class UGGGenerationTester(nn.Module):
             logger.info("No hand encode")
         self.unet = self.original_diffusion.unet
         self.schedule = self.original_diffusion.schedule
-        self.ddim_schedule = DDIMSchedule(self.schedule, 
-                                          self.diffusion_cfg.ddim_step, 
-                                          self.diffusion_cfg.ddim_discretize,
-                                          self.diffusion_cfg.ddim_eta)
         self.n_timestep = self.diffusion_cfg.n_timestep
 
         self.pc_latent_model.eval()
