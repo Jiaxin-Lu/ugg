@@ -10,7 +10,7 @@ NUM_WORKERS: 16
 PROJECT: ugg_generation
 
 TRAIN:
-  NUM_EPOCHS: 5000
+  NUM_EPOCHS: 3000
   LR: 0.0002
   OPTIMIZER: Adam
   LR_SCHEDULER: cosine
@@ -32,7 +32,7 @@ MODEL:
 
   diffusion:
     pc_checkpoint: ./checkpoints/lion/aeb159h_hvae_lion_B32/checkpoints/epoch_5999_iters_1667999.pt
-    hand_checkpoint: ./checkpoints/hand_vae/hand_vae_bs1024_lr004_kl00001_22_32_64_mse_step/model_epoch=009.ckpt
+    hand_checkpoint: ./checkpoints/hand_vae/hand_vae_bs1024_lr004_kl00001_22_32_64_mse_step/hand_vae.ckpt
     pc_args: ./checkpoints/lion/aeb159h_hvae_lion_B32/cfg.yml
     gen_hand: True
     gen_pc: True
@@ -62,4 +62,3 @@ DATA:
   USE_POINT_CLOUD: True
   APPLY_RANDOM_ROT: False
 
-  

@@ -20,7 +20,7 @@ from utils.hand_model import HandModel
 from utils.metrics import cal_pen, cal_q1
 from utils.object_model import ObjectModel
 from utils.rot6d import robust_compute_rotation_matrix_from_ortho6d
-from utils.utils import try_to_device, try_to_torch, try_to_cpu, try_to_numpy, save_pcd
+from utils.utils import try_to_device, try_to_torch, try_to_cpu, try_to_numpy
 
 
 NOW_TIME = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')

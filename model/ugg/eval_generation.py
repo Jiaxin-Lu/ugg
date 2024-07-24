@@ -25,12 +25,10 @@ from utils.hand_helper import compose_hand_param, decompose_hand_param
 from utils.hand_model import HandModel
 from utils.object_model import ObjectModel
 from utils.utils import (dict_to_cpu, dict_to_device, dict_to_numpy,
-                         extract_batch0, load_model, save_pcd)
+                         extract_batch0, load_model)
+
 
 NOW_TIME = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-
-
-torch.set_float32_matmul_precision('high')
 
 
 def joint_test(cfg):

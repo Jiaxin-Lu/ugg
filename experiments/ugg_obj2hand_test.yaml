@@ -19,7 +19,7 @@ MODEL:
 
   diffusion:
     pc_checkpoint: ./checkpoints/lion/aeb159h_hvae_lion_B32/checkpoints/epoch_5999_iters_1667999.pt
-    hand_checkpoint: ./checkpoints/hand_vae/hand_vae_bs1024_lr004_kl00001_22_32_64_mse_step/model_epoch=009.ckpt
+    hand_checkpoint: ./checkpoints/hand_vae/hand_vae_bs1024_lr004_kl00001_22_32_64_mse_step/hand_vae.ckpt
     pc_args: ./checkpoints/lion/aeb159h_hvae_lion_B32/cfg.yml
     gen_hand: True
     gen_pc: True
@@ -40,7 +40,7 @@ MODEL:
 
     #disc
     disc:
-      discriminator_checkpoint: ./checkpoints/ugg_discriminator/discriminator_on_e1499_bs1024_lr0002_ep80_decoded_oripc_onrefine/model_epoch=079.ckpt
+      discriminator_checkpoint: ./checkpoints/ugg_discriminator/discriminator_on_e1499_bs1024_lr0002_ep80_decoded_oripc_onrefine/discriminator.ckpt
       decoded_hand: True
 
       cls_mode: cat
@@ -59,3 +59,4 @@ MODEL:
     opt_lr: 0.001
     opt_iter: 100
 
+WEIGHT_FILE: checkpoints/ugg/ugg_bs8x256_lr0002_l2_cosine/ugg.ckpt

@@ -24,8 +24,6 @@ from utils.utils import load_model
 NOW_TIME = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 
 
-torch.set_float32_matmul_precision('medium')
-
 def train_model(cfg):
     # initialize dataloader
     train_loader, val_loader = build_dataloader(cfg)
