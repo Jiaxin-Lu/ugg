@@ -1,0 +1,91 @@
+FROM nvcr.io/nvidia/pytorch:21.09-py3
+ENV DEBIAN_FRONTEND=noninteractive 
+
+# dependencies for gym
+RUN apt-get update \
+ && apt-get install -y sudo --no-install-recommends \
+ libxcursor-dev \
+ libxrandr-dev \
+ libxinerama-dev \
+ libxi-dev \
+ mesa-common-dev \
+ zip \
+ unzip \
+ make \
+ gcc-8 \
+ g++-8 \
+ vulkan-utils \
+ mesa-vulkan-drivers \
+ pigz \
+ git \
+ libegl1 \
+ git-lfs \
+ tmux
+
+# Force gcc 8 to avoid CUDA 10 build issues on newer base OS
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 8
+RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 8
+
+# WAR for eglReleaseThread shutdown crash in libEGL_mesa.so.0 (ensure it's never detected/loaded)
+# Can't remove package libegl-mesa0 directly (because of libegl1 which we need)
+RUN rm /usr/lib/x86_64-linux-gnu/libEGL_mesa.so.0 /usr/lib/x86_64-linux-gnu/libEGL_mesa.so.0.0.0 /usr/share/glvnd/egl_vendor.d/50_mesa.json
+
+COPY docker/nvidia_icd.json /usr/share/vulkan/icd.d/nvidia_icd.json
+COPY docker/10_nvidia.json /usr/share/glvnd/egl_vendor.d/10_nvidia.json
+
+ENV APP_PATH="/opt/isaacgym"
+WORKDIR ${APP_PATH}
+# copy gym repo to docker
+COPY --chown=root . .
+
+# install gym modules
+RUN cd python && pip install -q -e .
+
+ENV NVIDIA_VISIBLE_DEVICES=all NVIDIA_DRIVER_CAPABILITIES=all
+ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${APP_PATH}"/python/isaacgym/_bindings/linux-x86_64"
+
+# dexgraspnet
+#TODO specify versions when stable
+RUN pip install transforms3d trimesh pyyaml lxml plotly --no-cache-dir
+RUN pip install urdf_parser_py scipy networkx rtree --no-cache-dir
+
+# pytorch3d
+#TODO specify versions when stable
+RUN pip install scikit-image matplotlib imageio opencv-python --no-cache-dir
+RUN curl -LO https://github.com/NVIDIA/cub/archive/1.10.0.tar.gz
+RUN tar xzf 1.10.0.tar.gz
+ENV CUB_HOME=${APP_PATH}"/cub-1.10.0"
+
+# ENV PYTORCH3D_NO_NINJA=1
+ENV MAX_JOBS=96
+RUN git clone https://github.com/facebookresearch/pytorch3d.git
+RUN cd pytorch3d && git checkout stable && FORCE_CUDA=1 pip install -e . && cd ..
+
+RUN git clone https://github.com/PKU-EPIC/DexGraspNet.git 
+RUN cd DexGraspNet/thirdparty/pytorch_kinematics && pip install -q -e . && cd ../../..
+
+RUN git clone https://github.com/wrc042/TorchSDF.git
+RUN cd TorchSDF && git checkout 0.1.0 && FORCE_CUDA=1 pip install -e . && cd ..
+
+# packages for reimplementation
+RUN pip install pytorch-lightning==1.8.0
+RUN pip install easydict loguru --no-cache-dir
+RUN pip install -U kaleido --no-cache-dir
+RUN pip install open3d werkzeug==2.2.3
+
+RUN addgroup --gid 1002 docker
+RUN useradd --create-home --no-log-init --shell /bin/bash user \
+    && adduser user sudo \
+    && echo 'user:password' | chpasswd
+
+RUN USER=user && \
+    GROUP=docker && \
+    curl -SsL https://github.com/boxboat/fixuid/releases/download/v0.4.1/fixuid-0.4.1-linux-amd64.tar.gz | tar -C /usr/local/bin -xzf - && \
+    chown root:root /usr/local/bin/fixuid && \
+    chmod 4755 /usr/local/bin/fixuid && \
+    mkdir -p /etc/fixuid && \
+    printf "user: $USER\ngroup: $GROUP\n" > /etc/fixuid/config.yml
+
+USER user:docker
+ENTRYPOINT ["fixuid"]
+
