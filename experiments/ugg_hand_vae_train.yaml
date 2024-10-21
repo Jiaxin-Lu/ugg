@@ -33,6 +33,6 @@ MODEL:
     
 DATA:
   SPLITS_DIR: 'data/splits'
-  USE_PRECOMPUTE_PC: True
+  USE_PRECOMPUTE_PC: False
   ROT_TYPE: mat
   
