@@ -69,8 +69,11 @@ for i, code in enumerate(grasp_code_list):
     for sc in scale_list:
         points = torch.tensor(points_ori * sc, dtype=torch.float32)
         points_tensor.append(points)
-
+    
     points_tensor = torch.cat(points_tensor, dim=0).to(device)  # [lx10, N, 3]
+    
+    points_tensor *= 6.6
+    
     _, _, latent_list = pc_latent_model.encode(points_tensor)
 
     l = len(scale_list)
