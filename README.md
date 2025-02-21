@@ -117,12 +117,16 @@ We would like to express our gratitude to the authors of the following repositor
 ## Citation
 If you find this repository useful in your research, please cite
 ```
-@misc{lu2023ugg,
-    title={UGG: Unified Generative Grasping}, 
-    author={Jiaxin Lu and Hao Kang and Haoxiang Li and Bo Liu and Yiding Yang and Qixing Huang and Gang Hua},
-    year={2023},
-    eprint={2311.16917},
-    archivePrefix={arXiv},
-    primaryClass={cs.CV}
+@inproceedings{lu2024ugg,
+    author = {Lu, Jiaxin and Kang, Hao and Li, Haoxiang and Liu, Bo and Yang, Yiding and Huang, Qixing and Hua, Gang},
+    title = {UGG: Unified Generative Grasping},
+    year = {2024},
+    publisher = {Springer-Verlag},
+    address = {Berlin, Heidelberg},
+    booktitle = {Computer Vision – ECCV 2024: 18th European Conference, Milan, Italy, September 29–October 4, 2024, Proceedings, Part LXVII},
+    pages = {414–433},
+    numpages = {20},
+    keywords = {Dexterous Grasping, Contact Representation, Generative Model},
+    location = {Milan, Italy}
 }
 ```
