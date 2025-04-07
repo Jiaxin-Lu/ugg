@@ -19,6 +19,8 @@ We list some of potential problems encountered by us and users here, along with 
 
 * Because of presaving, we assume the point clouds from dataset is already normalized if needed.
 
+* For presaving, find code in scripts/save_pc_latent.py.
+
 ## Training
 
 * To make full use of the LION model, a normalization factor **6.6** is used for objects suitable for grasping.
